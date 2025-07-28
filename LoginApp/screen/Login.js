@@ -1,25 +1,53 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // 🔹 Import navigation hook
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Login() {
-  const navigation = useNavigation(); // 🔹 Get navigation object
+  const navigation = useNavigation();
 
   const [mailId, setMailId] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-  if (!mailId || !password) {
-    Alert.alert('Error', 'Please enter both email and password');
-  } else {
-    Alert.alert('Success', 'Logged in successfully');
-    navigation.navigate('Home'); // ✅ navigate to Home screen
-  }
-};
+    if (!mailId || !password) {
+      Alert.alert('Error', 'Please enter both email and password');
+      return;
+    }
 
+    fetch('http://192.168.247.166:5000/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        mailId: mailId, // ✅ Correct key
+        password: password,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message === 'Login successful') {
+          Alert.alert('Success', 'Logged in successfully');
+          navigation.navigate('Home');
+        } else {
+          Alert.alert('Login Failed', data.message || 'Invalid credentials');
+        }
+      })
+      .catch((error) => {
+        console.error('Login error:', error);
+        Alert.alert('Error', 'Could not connect to server');
+      });
+  };
 
   const handleRegister = () => {
-    navigation.navigate('Register'); // 🔹 Navigate to Register screen
+    navigation.navigate('Register');
   };
 
   return (
@@ -32,6 +60,7 @@ export default function Login() {
         value={mailId}
         onChangeText={setMailId}
         keyboardType="email-address"
+        autoCapitalize="none"
       />
 
       <TextInput
@@ -56,14 +85,14 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffe4f2', // light pink background
+    backgroundColor: '#ffe4f2',
     justifyContent: 'center',
     paddingHorizontal: 25,
   },
   title: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#d63384', // dark pink
+    color: '#d63384',
     textAlign: 'center',
     marginBottom: 35,
     fontFamily: 'Cochin',
@@ -72,7 +101,7 @@ const styles = StyleSheet.create({
     height: 50,
     backgroundColor: '#fff',
     borderRadius: 12,
-    borderColor: '#f8c1d9', // soft pink border
+    borderColor: '#f8c1d9',
     borderWidth: 2,
     paddingHorizontal: 15,
     marginBottom: 15,
@@ -85,7 +114,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   button: {
-    backgroundColor: '#ff69b4', // hot pink
+    backgroundColor: '#ff69b4',
     paddingVertical: 15,
     borderRadius: 20,
     alignItems: 'center',
@@ -104,7 +133,7 @@ const styles = StyleSheet.create({
   },
   link: {
     marginTop: 20,
-    color: '#c71585', // medium violet red
+    color: '#c71585',
     textAlign: 'center',
     fontSize: 16,
     fontStyle: 'italic',

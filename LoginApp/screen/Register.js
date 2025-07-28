@@ -1,30 +1,64 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // ✅ Import navigation
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Register() {
-  const navigation = useNavigation(); // ✅ Hook to access navigation
+  const navigation = useNavigation();
 
-  const [username, setUsername] = useState('');
+  const [userName, setUserName] = useState('');
   const [mailId, setMailId] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleRegister = () => {
-    if (!username || !mailId || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill all the fields');
-    } else if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
-    } else {
-      // You can now send data to your backend API here
+    const trimmedUserName = userName.trim();
+    const trimmedMailId = mailId.trim();
+    const trimmedPassword = password.trim();
+    const trimmedConfirmPassword = confirmPassword.trim();
 
-      Alert.alert('Success', 'Registered Successfully', [
-        {
-          text: 'OK',
-          onPress: () => navigation.navigate('Login'), // ✅ Navigate to Login after register
-        },
-      ]);
+    if (!trimmedUserName || !trimmedMailId || !trimmedPassword || !trimmedConfirmPassword) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
     }
+
+    if (trimmedPassword !== trimmedConfirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
+
+    fetch('http://192.168.247.166:5000/api/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: trimmedUserName,
+        mailId: trimmedMailId,
+        password: trimmedPassword,
+        confirmPassword: trimmedConfirmPassword,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('📦 Server response:', data);
+        if (data.message === 'User registered successfully') {
+          Alert.alert('Success', 'Registration successful!');
+          navigation.navigate('Login');
+        } else {
+          Alert.alert('Registration Failed', data.message || 'Try again');
+        }
+      })
+      .catch((error) => {
+        console.error('🔥 Registration error:', error);
+        Alert.alert('Error', 'Could not connect to the server');
+      });
   };
 
   return (
@@ -33,9 +67,9 @@ export default function Register() {
 
       <TextInput
         style={styles.input}
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
+        placeholder="Name"
+        value={userName}
+        onChangeText={setUserName}
       />
 
       <TextInput
@@ -44,6 +78,7 @@ export default function Register() {
         value={mailId}
         onChangeText={setMailId}
         keyboardType="email-address"
+        autoCapitalize="none"
       />
 
       <TextInput
@@ -65,47 +100,48 @@ export default function Register() {
       <TouchableOpacity style={styles.button} onPress={handleRegister}>
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+        <Text style={styles.link}>Already have an account? Login</Text>
+      </TouchableOpacity>
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF0F5', // light pink background
+    backgroundColor: '#ffe6f0', // light pink background
     justifyContent: 'center',
     paddingHorizontal: 25,
   },
   title: {
-    fontSize: 36,
+    fontSize: 34,
     fontWeight: 'bold',
-    color: '#FF69B4', // hot pink
+    color: '#d63384', // deep pink text
     textAlign: 'center',
-    marginBottom: 35,
+    marginBottom: 30,
     fontFamily: 'Cochin',
   },
   input: {
     height: 50,
     backgroundColor: '#fff',
-    borderRadius: 12,
-    borderColor: '#FFB6C1', // light pink border
+    borderRadius: 10,
+    borderColor: '#f8c1d9', // soft pink border
     borderWidth: 2,
     paddingHorizontal: 15,
     marginBottom: 15,
     fontSize: 16,
     color: '#333',
-    shadowColor: '#FFB6C1',
-    shadowOffset: { width: 2, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    elevation: 2,
   },
   button: {
-    backgroundColor: '#FF69B4', // hot pink
+    backgroundColor: '#ff69b4', // hot pink button
     paddingVertical: 15,
-    borderRadius: 20,
+    borderRadius: 15,
     alignItems: 'center',
     marginTop: 20,
-    shadowColor: '#FF1493', // deeper pink shadow
+    shadowColor: '#ff1493',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.4,
     shadowRadius: 6,
@@ -116,5 +152,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     letterSpacing: 1,
+  },
+  link: {
+    marginTop: 20,
+    color: '#c71585', // violet pink link
+    textAlign: 'center',
+    fontSize: 16,
+    fontStyle: 'italic',
   },
 });

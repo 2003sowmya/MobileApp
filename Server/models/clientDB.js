@@ -1,15 +1,9 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const passportLocalMongoose = require('passport-local-mongoose');
 
-const clientSchema = new mongoose.Schema({
-    username: { type: String, unique: true, required: true },
-    password: { type: String, required: true }
-});
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true, unique: true },       // Changed from username
+  mailId: { type: String, required: true, unique: true },     // Changed from email
+  password: { type: String, required: true },
+}, { timestamps: true });
 
-// Attach Passport Local Mongoose plugin for easy authentication
-clientSchema.plugin(passportLocalMongoose);
-
-const Client = mongoose.model('Client', clientSchema);
-
-module.exports = Client;
+module.exports = mongoose.model('Client', userSchema);  // Make sure this matches in register.js
